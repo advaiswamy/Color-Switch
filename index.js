@@ -6,92 +6,84 @@ const GAME_HEIGHT = 600;
 
 var circarc = [];
 
-function onecirc(x,y) {
-  if (typeof(x)==='undefined') x = 150;
-  if (typeof(y)==='undefined') y = 150;
+function onecirc(x, y) {
+  if (typeof(x) === 'undefined') x = GAME_WIDTH / 2;
+  if (typeof(y) === 'undefined') y = GAME_HEIGHT / 4;
   let index = Math.floor(Math.random() * 4);
-  let colors = ["red", "yellow", "cyan", "purple"];
-  let radius = Math.floor(Math.random() * 21) + 30;
+  let colors = ["#ff4c68", "yellow", "cyan", "purple"];
+  let radius = Math.floor(Math.random() * 11) + 40;
   circarc.push(new Circobs(x, y, 0, colors[index], radius));
   circarc.push(new Circobs(x, y, Math.PI, "blue", radius));
 }
 
 var col = "";
 var collision = false;
-// var collisionPossible = true;
+
 
 function detectCollision() {
 
-for(let index = 1; index < circarc.length; index+=2)
-{
-  let y = circarc[index].position.y;
-  let x = circarc[index].position.x;
+  for (let index = 1; index < circarc.length; index += 2) {
+    let y = circarc[index].position.y;
+    let x = circarc[index].position.x;
 
-  let currPosYRight = y + (circarc[index].radius * Math.sin(circarc[index].angle));
-  let currPosYLeft = y + (circarc[index].radius * Math.sin(circarc[index].angle + Math.PI));
-  let currPosXRight = x + (circarc[index].radius * Math.cos(circarc[index].angle));
-  let currPosXLeft = x + (circarc[index].radius * Math.cos(circarc[index].angle + Math.PI));
+    //Tracks the coordinates of the endpoints of the arc
+    let currPosYRight = y + (circarc[index].radius * Math.sin(circarc[index].angle));
+    let currPosYLeft = y + (circarc[index].radius * Math.sin(circarc[index].angle + Math.PI));
+    let currPosXRight = x + (circarc[index].radius * Math.cos(circarc[index].angle));
+    let currPosXLeft = x + (circarc[index].radius * Math.cos(circarc[index].angle + Math.PI));
 
-  // if ((circarc[0].angle / (Math.PI / 2)) % 2 == 1) {
-  //   if (collisionPossible) {
-  //     collisionPossible = false;
-  //   } else if (!collisionPossible) {
-  //     collisionPossible = true;
-  //   }
-  // }
+    let bottomOfArcY = circarc[index].position.y + circarc[index].radius;
+    let topOfArcY = circarc[index].position.y - circarc[index].radius;
 
-  let bottomOfArcY = circarc[index].position.y + circarc[index].radius;
-  let topOfArcY = circarc[index].position.y - circarc[index].radius;
-
-  //To check collision between the top of the ball and the bottom of the arc
-  if (((ball.position.y - 10) <= (bottomOfArcY + 5)) && ((ball.position.y - 10) >= (bottomOfArcY - 5))) {
-    if ((x > currPosXLeft) && (x < currPosXRight)) {
-      collision = true;
+    //To check collision between the top of the ball and the bottom of the arc
+    if (((ball.position.y - 10) <= (bottomOfArcY + 5)) && ((ball.position.y - 10) >= (bottomOfArcY - 5))) {
+      if ((x > currPosXLeft) && (x < currPosXRight)) {
+        collision = true;
+      }
     }
-  }
 
-  //To check the collision between the bottom of the ball and the top of the arc
-  if (((ball.position.y + 10) <= (bottomOfArcY + 5)) && ((ball.position.y + 10) >= (bottomOfArcY - 5))) {
-    if ((x > currPosXLeft) && (x < currPosXRight)) {
-      collision = true;
+    //To check the collision between the bottom of the ball and the top of the arc
+    if (((ball.position.y + 10) <= (bottomOfArcY + 5)) && ((ball.position.y + 10) >= (bottomOfArcY - 5))) {
+      if ((x > currPosXLeft) && (x < currPosXRight)) {
+        collision = true;
+      }
     }
-  }
 
-  //To check the collision between the top of the arc and the bottom of the ball
-  if (((ball.position.y + 10) <= (topOfArcY + 5)) && ((ball.position.y + 10) >= (topOfArcY - 5))) {
-    if ((x < currPosXLeft) && (x > currPosXRight)) {
-      collision = true;
+    //To check the collision between the top of the arc and the bottom of the ball
+    if (((ball.position.y + 10) <= (topOfArcY + 5)) && ((ball.position.y + 10) >= (topOfArcY - 5))) {
+      if ((x < currPosXLeft) && (x > currPosXRight)) {
+        collision = true;
+      }
     }
-  }
 
-  //To check the collision between the top of the arc and the top of the ball
-  if (((ball.position.y - 10) <= (topOfArcY + 5)) && ((ball.position.y - 10) >= (topOfArcY - 5))) {
-    if ((x < currPosXLeft) && (x > currPosXRight)) {
-      collision = true;
+    //To check the collision between the top of the arc and the top of the ball
+    if (((ball.position.y - 10) <= (topOfArcY + 5)) && ((ball.position.y - 10) >= (topOfArcY - 5))) {
+      if ((x < currPosXLeft) && (x > currPosXRight)) {
+        collision = true;
+      }
     }
   }
 }
-}
 
-//   if (((ball.position.y - 10) <= (bottomOfArcY + 5)) && ((ball.position.y - 10) >= (bottomOfArcY - 5)) && (collisionPossible)) {
-//     collision = true;
-//   }
-// }
+
 
 function movement() {
   if (ball.position.y < 320) {
     circarc.forEach(arc => {
       arc.position.y += 1;
     });
+
+    score++;
   }
 
-  if(circarc[0].position.y === 300){
-    onecirc(150,-10);
+  if (circarc[0].position.y === GAME_HEIGHT / 2) {
+    onecirc(150, -10);
   }
-  if (circarc[0].position.y === 600) {
+  if (circarc[0].position.y === GAME_HEIGHT) {
     circarc.shift();
     circarc.shift();
   }
+
 }
 
 let score = 0;
@@ -101,6 +93,30 @@ function scoredraw() {
   ctx.fillStyle = "#0095DD";
   ctx.fillText("Score: " + score, 8, 20);
 }
+
+//Scoreboard
+const highScore = JSON.parse(localStorage.getItem("highScore")) || [];
+
+function updateScores(score) {
+  var name = prompt("Enter your name");
+  const board = {
+    name: name,
+    Score: score
+  };
+  // if (select == 1) {
+  highScore.push(board);
+  highScore.sort((a, b) => b.Score - a.Score);
+  highScore.splice(5);
+  localStorage.setItem('highScore', JSON.stringify(highScore));
+  // }
+  // else if (select > 1) {
+  //   highScoreshrd.push(board);
+  //   highScoreshrd.sort((a, b) => a.Time - b.Time);
+  //   highScoreshrd.splice(5);
+  //   localStorage.setItem('highScoreshrd', JSON.stringify(highScoreshrd));
+  // }
+}
+
 
 class Circobs {
   constructor(positionX, positionY, start, color, radius) {
@@ -127,6 +143,7 @@ class Circobs {
   }
 }
 
+var initial = true;
 class Ball {
   constructor(gameWidth, gameHeight) {
     this.gameWidth = gameWidth;
@@ -154,7 +171,7 @@ class Ball {
   }
 
   moveUp() {
-    this.speed = 6;
+    this.speed = 5;
   }
 
   stop() {
@@ -162,38 +179,64 @@ class Ball {
   }
 
   update() {
-    
+
     if (ball.position.y < ball.position.maxY) {
-      ball.gravity = 4;
-    } else {
-      ball.gravity = 0.5;
+      ball.position.y = ball.position.maxY+3;
+      ball.gravity = 1;
     }
 
-    if (ball.position.y > ball.position.initY) {
-      ball.position.y = ball.position.initY;
+    if(score !== 0){
+      initial = false;
     }
+
+    if ((ball.position.y > ball.position.initY)) {
+      if (initial) {
+        ball.position.y = ball.position.initY;
+        ball.gravity = 0;
+      }
+    }
+
+    if(ball.position.y >= GAME_HEIGHT){
+      collision = true;
+    }
+
     this.position.y -= (this.speed - this.gravity);
   }
 
 }
 
 var intv = 0;
+var grav = 0;
 class InputHandler {
   constructor(ball) {
     document.addEventListener('keydown', (event) => {
       switch (event.keyCode) {
         case 38:
-          if (event.repeat) return;
+          if (event.repeat) {
+            grav = setInterval(function() {
+              ball.gravity += 0.1;
+            }, 10);
+            return;
+          }
+
+          clearInterval(grav);
+
+          ball.gravity = 0.5;
+
+
+
           ball.moveUp();
+
           setTimeout(function() {
             ball.speed = 0;
           }, 80);
+
           intv = setInterval(movement, 10);
+
           setTimeout(function() {
             clearInterval(intv);
           }, 150);
-          // movement();
-          score++;
+
           break;
 
       }
@@ -202,7 +245,12 @@ class InputHandler {
     document.addEventListener('keyup', (event) => {
       switch (event.keyCode) {
         case 38:
-          ball.stop();
+          // ball.stop();
+          var jump = new Audio("sounds/jump.wav");
+          jump.play();
+          grav = setInterval(function() {
+            ball.gravity += 0.1;
+          }, 10);
           break;
 
       }
@@ -226,7 +274,9 @@ function render() {
   scoredraw();
 
   if (collision) {
-    alert("You lost");
+    updateScores(score);
+
+    alert("You score: " + score);
     location.reload();
   } else {
     requestAnimationFrame(render);
