@@ -103,18 +103,12 @@ function updateScores(score) {
     name: name,
     Score: score
   };
-  // if (select == 1) {
+
   highScore.push(board);
   highScore.sort((a, b) => b.Score - a.Score);
   highScore.splice(5);
   localStorage.setItem('highScore', JSON.stringify(highScore));
-  // }
-  // else if (select > 1) {
-  //   highScoreshrd.push(board);
-  //   highScoreshrd.sort((a, b) => a.Time - b.Time);
-  //   highScoreshrd.splice(5);
-  //   localStorage.setItem('highScoreshrd', JSON.stringify(highScoreshrd));
-  // }
+
 }
 
 
