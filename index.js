@@ -1,4 +1,4 @@
-var canvas = document.getElementById("canvas"); //Still have to work on changecolor position
+var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext('2d');
 
 const GAME_WIDTH = 300;
@@ -31,7 +31,6 @@ function onecirc(x, y) {
   }
 
   circarc.push(onearc);
-  // circarc.push(new Circobs(x, y, Math.PI, "blue", radius));
 }
 
 function shuffleArray(array) {
@@ -79,9 +78,9 @@ function detectCollision() {
       }
     }
 
-
     let bottomOfArcY = arc[0].position.y + arc[0].radius;
     let topOfArcY = arc[0].position.y - arc[0].radius;
+
     // To check collision between the top of the ball and the bottom of the arc
     if (((ball.position.y - 10) <= (bottomOfArcY + 5)) && ((ball.position.y - 10) >= (bottomOfArcY - 5))) {
       if (collisionPossibleBottom) {
