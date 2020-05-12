@@ -110,43 +110,47 @@ function detectCollision() {
     }
 
   });
-
-  return;
 }
 
+let executeOnce = true;
+let tempscore = 0;
+let factor = 2.5;
+let factorAngle = 1;
 function movement() {
   if (ball.position.y < 320) {
     circarc.forEach(arcarray => {
       arcarray.forEach(arc => {
-        if(score >= 1000)
-          arc.position.y += 3;
-        else
-          arc.position.y += 1.5
+          arc.position.y += factor;
       });
     });
 
     if (changecolor.length !== 0) {
       changecolor.forEach(color => {
-
-        if(score >= 1000)
-          color.position.y += 3;
-        else
-          color.position.y += 1.5;
+          color.position.y += factor;
       });
     }
+
+    if(tempscore>500){
+      tempscore = 0;
+      factor+=0.2;
+      factorAngle+=0.2;
+    }
+    tempscore++;
     score++;
   }
 
-  if (circarc[0][0].position.y === GAME_HEIGHT / 2) {
-    if(score >= 1000)
-      circarc[0][0].position.y += 3;
-    else
-      circarc[0][0].position.y += 3;
-    onecirc(150, -15);
-    changecolor.push(new ColorChange());
+
+  if (circarc[0][0].position.y >= GAME_HEIGHT / 2) {
+
+    if (executeOnce) {
+      executeOnce = false;
+      onecirc(150, -15);
+      changecolor.push(new ColorChange());
+    }
   }
 
-  if (circarc[0][0].position.y === GAME_HEIGHT) {
+  if (circarc[0][0].position.y >= GAME_HEIGHT) {
+    executeOnce = true;
     changecolor.shift();
     circarc.shift();
   }
@@ -158,7 +162,7 @@ function scoredraw() {
   ctx.font = "16px Arial";
   ctx.fillStyle = "#FFFFFF";
   ctx.fillText("Score: " + score, 8, 20);
-  ctx.fillText("HighScore:" + Math.max(score,highScore), 170, 20);
+  ctx.fillText("HighScore:" + Math.max(score, highScore), 170, 20);
 }
 
 
@@ -203,8 +207,7 @@ class Ball {
     this.gameWidth = gameWidth;
     this.color = color;
     this.speed = 0;
-    this.maxSpeed = 5;
-    this.gravity = 0.5;
+    this.gravity = 10;
     this.position = {
       x: gameWidth / 2,
       y: gameHeight - 90,
@@ -225,7 +228,7 @@ class Ball {
   }
 
   moveUp() {
-    this.speed = 5;
+    this.speed = 4;
   }
 
   stop() {
@@ -236,7 +239,6 @@ class Ball {
 
     if (ball.position.y < ball.position.maxY) {
       ball.position.y = ball.position.maxY;
-      ball.gravity = 1;
     }
 
     if (score !== 0) {
@@ -246,15 +248,15 @@ class Ball {
     if ((ball.position.y > ball.position.initY)) {
       if (initial) {
         ball.position.y = ball.position.initY;
-        ball.gravity = 0;
+        ball.speed = ball.gravity * (1 / 60);
       }
     }
 
     if (ball.position.y >= GAME_HEIGHT) {
       collision = true;
     }
-
-    this.position.y -= (this.speed - this.gravity);
+    this.speed -= this.gravity * (1 / 60);
+    this.position.y -= this.speed;
   }
 
 }
@@ -294,32 +296,29 @@ class ColorChange {
 }
 
 var intv = 0;
-var grav = 0;
+var firstTime = true;
+var myAudio = new Audio('sounds/soundtrack.mp3'); //Credits https://www.fesliyanstudios.com/royalty-free-music/downloads-c/8-bit-music/6
 class InputHandler {
   constructor(ball) {
     document.addEventListener('keydown', (event) => {
       switch (event.keyCode) {
         case 38: // Up arrow key
           if (paused) {
-            clearInterval(grav);
             return;
           }
           if (event.repeat) {
-            grav = setInterval(function() {
-              ball.gravity += 0.1;
-            }, 10);
             return;
           }
 
-          clearInterval(grav);
-
-          ball.gravity = 0.5;
-
+          if(firstTime){
+            firstTime = false;
+              myAudio.addEventListener('ended', function() {
+                this.currentTime = 0;
+                this.play();
+              }, false);
+              myAudio.play();
+          }
           ball.moveUp();
-
-          setTimeout(function() {
-            ball.speed = 0;
-          }, 80);
 
           intv = setInterval(movement, 10);
 
@@ -331,7 +330,7 @@ class InputHandler {
 
         case 27: //Escape Key
           paused = !paused;
-          if(!paused){
+          if (!paused) {
             ctx.textAlign = "start";
           }
           requestAnimationFrame(render);
@@ -343,14 +342,10 @@ class InputHandler {
       switch (event.keyCode) {
         case 38:
           if (paused) {
-            clearInterval(grav);
             return;
           }
           var jump = new Audio("sounds/jump.wav"); //https://www.sounds-resource.com/mobile/colorswitch/sound/7826/
           jump.play();
-          grav = setInterval(function() {
-            ball.gravity += 0.1;
-          }, 10);
           break;
 
       }
@@ -388,10 +383,10 @@ function render() {
         arcs.angle = 0;
       }
 
-      if(score>=1000)
-        arcs.angle += 1.5 * Math.PI / 180;
-      else
-        arcs.angle += 1 * Math.PI / 180;
+      if(factorAngle > 3){
+        factorAngle = 3;
+      }
+      arcs.angle += factorAngle * Math.PI/180;
     })
   });
 
@@ -405,9 +400,14 @@ function render() {
   scoredraw();
 
   if (collision) {
-    updateScores(score);
-    alert("You score: " + score);
-    location.reload();
+    myAudio.pause();
+
+    setTimeout(function(){
+      updateScores(score);
+      alert("You score: " + score);
+      location.reload();
+    },10);
+
   } else {
     requestAnimationFrame(render);
   }
