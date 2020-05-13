@@ -411,8 +411,6 @@ function render() { //Draws all the objects on the screen
     return;
   }
 
-
-
   ball.draw(ctx);
 
   circarc.forEach(arcarray => {
