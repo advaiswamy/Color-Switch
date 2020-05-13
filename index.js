@@ -5,9 +5,11 @@ const GAME_WIDTH = 300;
 const GAME_HEIGHT = 600;
 
 var paused = false;
+var menu = true;
 
 var circarc = [];
 
+//Used to push the objects into circarc which is then draw in the game loop
 function onecirc(x, y) {
   if (typeof(x) === 'undefined') x = GAME_WIDTH / 2;
   if (typeof(y) === 'undefined') y = GAME_HEIGHT / 4;
@@ -29,10 +31,10 @@ function onecirc(x, y) {
     start += ((2 * Math.PI) / randint);
     end += ((2 * Math.PI) / randint);
   }
-
   circarc.push(onearc);
 }
 
+//Used to shuffle the colors array
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -42,7 +44,6 @@ function shuffleArray(array) {
 
 var col = "";
 var collision = false;
-
 
 function detectCollision() {
   let collisionPossibleBottom = true;
@@ -112,36 +113,40 @@ function detectCollision() {
   });
 }
 
+//Used to move the objects in the canvas
 let executeOnce = true;
 let tempscore = 0;
 let factor = 2.5;
 let factorAngle = 1;
+
 function movement() {
+  //Moves the arcs
   if (ball.position.y < 320) {
     circarc.forEach(arcarray => {
       arcarray.forEach(arc => {
-          arc.position.y += factor;
+        arc.position.y += factor;
       });
     });
 
+    //Moves the changecolor object
     if (changecolor.length !== 0) {
       changecolor.forEach(color => {
-          color.position.y += factor;
+        color.position.y += factor;
       });
     }
 
-    if(tempscore>500){
+    //Increases the speed of movement every time the score increases by 500
+    if (tempscore > 500) {
       tempscore = 0;
-      factor+=0.2;
-      factorAngle+=0.2;
+      factor += 0.2;
+      factorAngle += 0.2;
     }
     tempscore++;
     score++;
   }
 
-
+  //Pushes a new object when the one on the screen reaches half of the canvas height
   if (circarc[0][0].position.y >= GAME_HEIGHT / 2) {
-
     if (executeOnce) {
       executeOnce = false;
       onecirc(150, -15);
@@ -149,6 +154,7 @@ function movement() {
     }
   }
 
+  //Removes the object once it reaches the bottom of the canvas
   if (circarc[0][0].position.y >= GAME_HEIGHT) {
     executeOnce = true;
     changecolor.shift();
@@ -156,6 +162,7 @@ function movement() {
   }
 }
 
+//Draws the scores on the canvas
 let score = 0;
 
 function scoredraw() {
@@ -165,7 +172,7 @@ function scoredraw() {
   ctx.fillText("HighScore:" + Math.max(score, highScore), 170, 20);
 }
 
-
+//Updates the High Scores in real time
 let highScore = localStorage.getItem("hs") || 0;
 
 function updateScores(score) {
@@ -175,6 +182,7 @@ function updateScores(score) {
   }
 }
 
+//This class is used to draw a single arc
 class Circobs {
   constructor(positionX, positionY, start, end, color, radius) {
     this.color = color;
@@ -201,6 +209,7 @@ class Circobs {
   }
 }
 
+//This class contains the ball object
 var initial = true;
 class Ball {
   constructor(gameWidth, gameHeight, color) {
@@ -236,7 +245,7 @@ class Ball {
   }
 
   update() {
-
+    // Doesnt let the ball go above half the height of the canvas
     if (ball.position.y < ball.position.maxY) {
       ball.position.y = ball.position.maxY;
     }
@@ -246,26 +255,30 @@ class Ball {
     }
 
     if ((ball.position.y > ball.position.initY)) {
-      if (initial) {
+      if (initial) { // Doesnt let the ball fall down as long as the score is 0
         ball.position.y = ball.position.initY;
         ball.speed = ball.gravity * (1 / 60);
       }
     }
 
+    //If the score is not zero and the ball touches the bottom of the canvas the game is over
     if (ball.position.y >= GAME_HEIGHT) {
       collision = true;
     }
+
+    //Gravity being applied on the ball
     this.speed -= this.gravity * (1 / 60);
     this.position.y -= this.speed;
   }
 
 }
 
+//This class contains the object that is used to change the color of the ball
 class ColorChange {
   constructor() {
     this.position = {
       x: GAME_WIDTH / 2,
-      y: 115
+      y: 140
     };
   }
 
@@ -287,6 +300,7 @@ class ColorChange {
   }
 
   colorchange() {
+    //If the ball is above the object sets the color to the one which allows entry into the next arc else sets it back to the previous color
     if (ball.position.y > this.position.y) {
       ball.color = (circarc[0][circarc[0].length - 1]).color;
     } else if (ball.position.y < this.position.y) {
@@ -295,6 +309,7 @@ class ColorChange {
   }
 }
 
+//This is class used to handle inputs
 var intv = 0;
 var firstTime = true;
 var myAudio = new Audio('sounds/soundtrack.mp3'); //Credits https://www.fesliyanstudios.com/royalty-free-music/downloads-c/8-bit-music/6
@@ -303,25 +318,35 @@ class InputHandler {
     document.addEventListener('keydown', (event) => {
       switch (event.keyCode) {
         case 38: // Up arrow key
+
+          //Doesnt perform an action when paused is triggered
           if (paused) {
             return;
           }
-          if (event.repeat) {
+          if (event.repeat) { //Doesnt let the user hold the key
             return;
           }
 
-          if(firstTime){
+          //Sets the start menu to false and plays the background audio
+          if (firstTime) {
+            menu = false;
+            ctx.textAlign = "start";
+            requestAnimationFrame(render);
             firstTime = false;
-              myAudio.addEventListener('ended', function() {
-                this.currentTime = 0;
-                this.play();
-              }, false);
-              myAudio.play();
+            myAudio.addEventListener('ended', function() {
+              this.currentTime = 0;
+              this.play();
+            }, false);
+            myAudio.play();
           }
+
+          //Gives speed to the ball
           ball.moveUp();
 
+          //Allows movement
           intv = setInterval(movement, 10);
 
+          //Clears the movement interval
           setTimeout(function() {
             clearInterval(intv);
           }, 150);
@@ -329,6 +354,7 @@ class InputHandler {
           break;
 
         case 27: //Escape Key
+          //Toggles pause menu
           paused = !paused;
           if (!paused) {
             ctx.textAlign = "start";
@@ -344,6 +370,7 @@ class InputHandler {
           if (paused) {
             return;
           }
+          //Plays the jump sound on keyup
           var jump = new Audio("sounds/jump.wav"); //https://www.sounds-resource.com/mobile/colorswitch/sound/7826/
           jump.play();
           break;
@@ -354,14 +381,25 @@ class InputHandler {
   }
 }
 
-onecirc();
+onecirc(); //Inititalizes the initial object
 let ball = new Ball(GAME_WIDTH, GAME_HEIGHT, (circarc[0][circarc[0].length - 1]).color);
 new InputHandler(ball);
 let changecolor = [];
 
-function render() {
+function render() { //Draws all the objects on the screen
+  if (menu) { //Draws the start menu
+    ctx.rect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.fill();
 
-  if (paused) {
+    ctx.font = "15px Arial";
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText("Press Up to move and esc to pause", GAME_WIDTH / 2, GAME_HEIGHT / 2);
+    return;
+  }
+
+  if (paused) { //Draws the pause menu
     ctx.rect(0, 0, GAME_WIDTH, GAME_HEIGHT);
     ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.fill();
@@ -376,6 +414,7 @@ function render() {
 
 
   ball.draw(ctx);
+
   circarc.forEach(arcarray => {
     arcarray.forEach(arcs => {
       arcs.draw(ctx);
@@ -383,10 +422,10 @@ function render() {
         arcs.angle = 0;
       }
 
-      if(factorAngle > 3){
+      if (factorAngle > 3) {
         factorAngle = 3;
       }
-      arcs.angle += factorAngle * Math.PI/180;
+      arcs.angle += factorAngle * Math.PI / 180;
     })
   });
 
@@ -396,17 +435,18 @@ function render() {
       changecolor[0].colorchange();
     }
   }
+
   detectCollision();
   scoredraw();
 
   if (collision) {
     myAudio.pause();
 
-    setTimeout(function(){
+    setTimeout(function() {
       updateScores(score);
       alert("You score: " + score);
       location.reload();
-    },10);
+    }, 10);
 
   } else {
     requestAnimationFrame(render);
@@ -414,7 +454,7 @@ function render() {
 }
 
 function updateFrame() {
-  if (paused) {
+  if (paused || menu) {
     return;
   }
   ball.update();
