@@ -5,6 +5,10 @@ body{
   justify-content: center;
 }
 
+img{
+  display: none;
+}
+
 canvas{
   background-color: #272727;
 }
