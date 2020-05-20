@@ -14,9 +14,9 @@ window.onload = function() {
     if (typeof(x) === 'undefined') x = GAME_WIDTH / 2;
     if (typeof(y) === 'undefined') y = GAME_HEIGHT / 4;
 
-    let obsChoice = Math.floor(Math.random() * 2);
+    let obsChoice = Math.floor(Math.random() * 5);
     let currentObs = [];
-    if (obsChoice === 1) { //Makes a triangle
+    if (obsChoice <= 1) { //Makes a triangle
       currentObs.push(new Triangleobs(x, y));
     } else { // Makes a circle
       makecirc(currentObs, x, y);
@@ -376,7 +376,7 @@ window.onload = function() {
     }
 
     colorchange() {
-      //If the ball is above the object sets the color to the one which allows entry into the next arc else sets it back to the previous color
+      //If the ball is above the object sets the color to the one which allows entry into the next arc
       if (ball.position.y - 10 < this.position.y) {
         ball.color = gameObstacle[1][0].color;
         let collect = new Audio("sounds/collect.wav");
@@ -417,7 +417,7 @@ window.onload = function() {
         setTimeout(function() {
           powerUpVal = false;
           clearInterval(intv);
-          if (changecolor.length !== 0)
+          if (changecolor.length === 0)
             ball.color = gameObstacle[1][0].color;
           else
             ball.color = gameObstacle[0][0].color;
